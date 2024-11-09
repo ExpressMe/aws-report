@@ -1,0 +1,146 @@
+{
+  "name": "aws",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/aws/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+
+    "init-account": {
+      "executor": "nx:run-commands",
+      "configurations": {
+        "dev": {},
+        "prod": {}
+      },
+      "options": {
+        "commands": [
+          "npx nx run aws:build-init",
+          "npx cdk deploy --app ./dist/apps/aws/init/main.js"
+        ],
+        "parallel": false
+      }
+    },
+    "build-init": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "target": "node",
+        "compiler": "tsc",
+        "outputPath": "dist/apps/aws/init",
+        "main": "apps/aws/src/init.ts",
+        "tsConfig": "apps/aws/tsconfig.app.json",
+        "isolatedConfig": true,
+        "webpackConfig": "apps/aws/webpack.config.js",
+        "optimization": true,
+        "extractLicenses": true,
+        "inspect": false
+      },
+      "configurations": {
+        "dev": {},
+        "prod": {}
+      }
+    },
+    "build": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "dev",
+      "options": {
+        "target": "node",
+        "compiler": "tsc",
+        "outputPath": "dist/apps/aws",
+        "main": "apps/aws/src/main.ts",
+        "tsConfig": "apps/aws/tsconfig.app.json",
+        "isolatedConfig": true,
+        "webpackConfig": "apps/aws/webpack.config.js",
+        "optimization": true,
+        "extractLicenses": true,
+        "inspect": false
+      },
+      "configurations": {
+        "dev": {},
+        "prod": {}
+      }
+    },
+    "cdk-bootstrap": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "npx cdk bootstrap $AWS_ENVIRONMENT"
+        ],
+        "parallel": false
+      },
+      "configurations": {
+        "dev": {},
+        "prod": {}
+      }
+    },
+    "cdk-deploy": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        {
+          "projects": "aws",
+          "target": "build",
+          "params": "forward"
+        },
+        {
+          "projects": "backend",
+          "target": "build-all",
+          "params": "forward"
+        }
+      ],
+      "options": {
+        "commands": [
+          "npx cdk deploy --app \"npx node dist/apps/aws/main.js\" --require-approval never"
+        ],
+        "parallel": false,
+        "forwardOutput": true
+      },
+      "configurations": {
+        "dev": {},
+        "prod": {}
+      }
+    },
+    "cdk-deploy-local": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        {
+          "projects": "aws",
+          "target": "build",
+          "params": "forward"
+        }
+      ],
+      "options": {
+        "commands": [
+          "npx cdk deploy --app \"npx node dist/apps/aws/main.js\" --require-approval never --profile expressme_dev"
+        ],
+        "parallel": false,
+        "forwardOutput": true
+      },
+      "configurations": {
+        "dev": {},
+        "prod": {}
+      }
+    },
+    "cdk-deploy-local-prod": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        {
+          "projects": "aws",
+          "target": "build",
+          "params": "forward"
+        }
+      ],
+      "options": {
+        "commands": [
+          "npx cdk deploy --app \"npx node dist/apps/aws/main.js\" --require-approval never --profile expressme_prod"
+        ],
+        "parallel": false,
+        "forwardOutput": true
+      },
+      "configurations": {
+        "dev": {},
+        "prod": {}
+      }
+    }
+  }
+}

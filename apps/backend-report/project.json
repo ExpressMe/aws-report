@@ -1,0 +1,90 @@
+{
+  "name": "backend-report",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/backend-report/src",
+  "tags": [],
+  "targets": {
+    "cognito-idtoken": {
+      "defaultConfiguration": "dev",
+      "configurations": {
+        "dev": {
+        }
+      },
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "(cd ./apps/backend-report && ./scripts/cognito-idtoken.sh)"
+        ],
+        "parallel": false
+      }
+    },
+    "build-all": {
+      "configurations": {
+        "dev": {
+        },
+        "prod": {
+        }
+      },
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "(cd ./apps/backend-report && mvn package -Pnative -pl functions/uppercase native:compile -DskipTests)"
+        ],
+        "parallel": false
+      }
+    },
+    "start": {
+      "defaultConfiguration": "local",
+      "configurations": {
+        "local": {
+        }
+      },
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "(cd ./apps/backend-report && docker compose down && docker compose up --watch --build)"
+        ],
+        "parallel": false
+      }
+    },
+    "aws-login": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "aws sso login --profile expressme_dev",
+          ". ./apps/backend-report/scripts/set-aws-credentials.sh"
+        ],
+        "parallel": false
+      }
+    },
+    "aws-local-connect-rds": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "./apps/backend-report/scripts/start-ssm.sh"
+        ],
+        "parallel": false
+      },
+      "defaultConfiguration": "local",
+      "configurations": {
+        "local": {
+        }
+      }
+
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "defaultConfiguration": "test",
+      "options": {
+        "commands": [
+          "./mvnw -f apps/backend-report test"
+        ],
+        "parallel": false
+      },
+      "configurations": {
+        "test": {
+        }
+      }
+    }
+  }
+}

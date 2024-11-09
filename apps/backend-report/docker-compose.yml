@@ -1,0 +1,44 @@
+---
+services:
+  docker_db:
+    image: postgres:16.4-alpine
+    environment:
+      - POSTGRES_DB=${DATASOURCES_DEFAULT_DB_NAME}
+      - POSTGRES_USER=${DATASOURCES_DEFAULT_USERNAME}
+      - POSTGRES_PASSWORD=${DATASOURCES_DEFAULT_PASSWORD}
+    networks:
+      - lambda-net
+
+
+  nginx:
+    image: openresty/openresty:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./nginx/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf
+      - ./nginx/lua:/usr/local/openresty/nginx/lua
+    networks:
+      - lambda-net
+    depends_on:
+      - docker_db
+      - expressme-uppercase
+
+  expressme-uppercase:
+    build:
+      context: .
+      dockerfile: Dockerfile.development
+      args:
+        - FUNCTION_NAME=uppercase
+        - MAVEN_REPO=~/.m2/repository
+    networks:
+      - lambda-net
+    depends_on:
+      - docker_db
+    develop:
+      watch:
+        - action: rebuild
+          path: ./functions/uppercase/src
+          target: /build/functions/uppercase/src
+
+networks:
+  lambda-net:

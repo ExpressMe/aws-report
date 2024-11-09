@@ -1,0 +1,10 @@
+FROM vegardit/graalvm-maven:latest-java21
+ARG FUNCTION_NAME=undefined
+
+ARG MAVEN_REPO=undefined
+
+WORKDIR /build/functions/$FUNCTION_NAME
+COPY . /build
+
+ENTRYPOINT ["bash", "-c", "mvn spring-boot:run -Pdevelopment -Dmaven.repo.local=${MAVEN_REPO}"]
+
