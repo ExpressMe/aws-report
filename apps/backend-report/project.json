@@ -28,7 +28,8 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "(cd ./apps/backend-report && mvn clean package -Pproduction -DskipTests)"
+          "(cd ./apps/backend-report && mvn clean package -Pnative -Pproduction native:compile -DskipTests)"
+
         ],
         "parallel": false
       }

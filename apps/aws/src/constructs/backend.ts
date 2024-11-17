@@ -60,7 +60,7 @@ export class Backend extends Construct {
 
     const backendFunction = new lambda.Function(this, `${this.props.prefix}-${options.id}-LambdaFunction`, {
       functionName: options.id,
-      runtime: lambda.Runtime.JAVA_21,
+      runtime: lambda.Runtime.PROVIDED_AL2023,
       vpc: this.props.vpc,
       vpcSubnets: {
         subnetType: SubnetType.PRIVATE_ISOLATED,

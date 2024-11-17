@@ -92,7 +92,7 @@ export class ExpressMeStack extends cdk.Stack {
       apiVersion: 1,
       apiPath: 'uppercase',
       httpMethod: apigatewayv2.HttpMethod.POST,
-      zipFilePath: path.join(__dirname, '../../..', '/apps/backend-report/functions/uppercase/target/uppercase-aws.jar'),
+      zipFilePath: path.join(__dirname, '../../..', '/apps/backend-report/functions/uppercase/target/uppercase-native.zip'),
       databasePolicy: database.allowConnectionPolicy,
       databaseName: options.databaseName,
       database: database.database,
