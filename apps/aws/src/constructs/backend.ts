@@ -57,9 +57,10 @@ export class Backend extends Construct {
     databaseName: string;
     database: DatabaseInstance;
   }) {
+
     const backendFunction = new lambda.Function(this, `${this.props.prefix}-${options.id}-LambdaFunction`, {
       functionName: options.id,
-      runtime: lambda.Runtime.PROVIDED_AL2023,
+      runtime: lambda.Runtime.JAVA_21,
       vpc: this.props.vpc,
       vpcSubnets: {
         subnetType: SubnetType.PRIVATE_ISOLATED,
@@ -69,12 +70,15 @@ export class Backend extends Construct {
       code: lambda.Code.fromAsset(options.zipFilePath),
       securityGroups: [this.props.securityGroup],
       architecture: lambda.Architecture.X86_64,
+      
       environment: {
         RDS_ENDPOINT: options.database.dbInstanceEndpointAddress,
         RDS_PORT: options.database.dbInstanceEndpointPort,
         RDS_DATABASE: options.databaseName,
         RDS_IAM_USER: "lambda_user",
-      }
+        MAIN_CLASS: "nl.expressme.backend.Application"
+      },
+      memorySize: 512,
     });
 
     const integration = new apigatewayv2_integrations.HttpLambdaIntegration(`${this.props.prefix}-${options.id}-Integration`, backendFunction);

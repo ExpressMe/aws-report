@@ -28,7 +28,7 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "(cd ./apps/backend-report && mvn package -Pnative -pl functions/uppercase native:compile -DskipTests)"
+          "(cd ./apps/backend-report && mvn clean package -Pproduction -DskipTests)"
         ],
         "parallel": false
       }

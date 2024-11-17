@@ -2,10 +2,11 @@ import * as cdk from 'aws-cdk-lib';
 import {
   aws_apigatewayv2 as apigatewayv2,
 } from 'aws-cdk-lib';
-import { Port, SecurityGroup, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
+import { Peer, Port, SecurityGroup, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
 import path from 'path';
 import { Backend } from '../constructs/backend';
+import { BastionHost } from '../constructs/bastion-host';
 import { Database } from '../constructs/database';
 export interface ExpressMeStackOptions {
   databaseName: string;
@@ -50,10 +51,23 @@ export class ExpressMeStack extends cdk.Stack {
       description: 'Allow lambda outbound access to db',
     });
 
+    const bastionSecurityGroup = new SecurityGroup(this, `${prefix}-BastionHostSecurityGroup`, {
+      vpc,
+      allowAllOutbound: false,
+      securityGroupName: `${id}-BastionHostSecurityGroup`,
+      description: 'Allow outbound and inbound to db through bastion host',
+    });
+
     rdsSecurityGroup.addIngressRule(lambdaSecurityGroup, Port.tcp(5432), 'Allow inbound from lambda');
     rdsSecurityGroup.addEgressRule(lambdaSecurityGroup, Port.tcp(5432), 'Allow outbound to lambda');
+    rdsSecurityGroup.addIngressRule(bastionSecurityGroup, Port.tcp(5432), 'Allow inbound from bastion host');
+    rdsSecurityGroup.addEgressRule(bastionSecurityGroup, Port.tcp(5432), 'Allow outbound to bastion host');
 
     lambdaSecurityGroup.addEgressRule(rdsSecurityGroup, Port.tcp(5432), 'Allow outbound to RDS'); // Ingress rules do not affect lambda
+
+    bastionSecurityGroup.addEgressRule(Peer.anyIpv4(), Port.tcp(443), 'Allow outbound to reach VPC endpoints');
+    bastionSecurityGroup.addEgressRule(Peer.anyIpv4(), Port.tcp(5432), 'Allow outbound to anywhere from rds');
+    bastionSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(5432), 'Allow inbound from anywhere to rds');
 
     const database = new Database(this, `${prefix}-Database`, {
       prefix,
@@ -72,15 +86,23 @@ export class ExpressMeStack extends cdk.Stack {
       securityGroup: lambdaSecurityGroup,
       allowedOrigins: ['https://expressme.nl'],
     });
+
     backend.addEndpoint({
       id: 'ExpressMeUppercase',
       apiVersion: 1,
       apiPath: 'uppercase',
       httpMethod: apigatewayv2.HttpMethod.POST,
-      zipFilePath: path.join(__dirname, '../../..', '/apps/backend-report/functions/uppercase/target/uppercase-native.zip'),
+      zipFilePath: path.join(__dirname, '../../..', '/apps/backend-report/functions/uppercase/target/uppercase-aws.jar'),
       databasePolicy: database.allowConnectionPolicy,
       databaseName: options.databaseName,
       database: database.database,
+    });
+
+    const bastionHost = new BastionHost(this, `${prefix}-BastionHost`, {
+      prefix,
+      vpc,
+      securityGroup: bastionSecurityGroup,
+      region: options.region,
     });
 
 
