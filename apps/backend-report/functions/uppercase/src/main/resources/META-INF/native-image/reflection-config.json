@@ -75,6 +75,13 @@
     "allDeclaredFields": true
   },
   {
+    "name": "software.amazon.jdbc.wrapper.DatabaseMetaDataWrapper",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  },
+  {
     "name": "com.zaxxer.hikari.HikariConfig",
     "allDeclaredConstructors": true,
     "allDeclaredMethods": true,
